@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "#include <RcppArmadillo.h>\nusing namespace Rcpp;\n\n// This is a simple example of exporting a C++ function to R. You can\n// source this function into an R session using the Rcpp::sourceCpp\n// function (or via the Source button on the editor toolbar). Learn\n// more about Rcpp at:\n//\n//   http://www.rcpp.org/\n//   http://adv-r.had.co.nz/Rcpp.html\n//   http://gallery.rcpp.org/\n//\n\n\n\n// [[Rcpp::depends(RcppArmadillo)]]\n\n\n// [[Rcpp::export]]\narma::mat fisherInd (arma::mat Q, arma::mat P, int base_period) {\n  // Fisher index; direct approach; yes transitivity normalization\n  //int M = Q.n_rows ;\n  //int K = Q.n_cols ;\n  //arma::mat check_nonneg_zeros(M, K) ;\n  //check_nonneg_zeros.zeros() ;\n\n  //arma::mat Q_nonneg = Q >= check_nonneg_zeros.zeros()\n  //bool all_nonneg_check_Q = arma::as_scalar( arma::all(arma::all(Q_nonneg, 0), 1) ) ;\n  // bool all_nonneg_check_Q = arma::as_scalar( arma::all(arma::all(Q >= 0, 0), 1) ) ;\n  // bool all_nonneg_check_P = arma::as_scalar( arma::all(arma::all(P >= 0, 0), 1) )  ;\n  //if ( ! (all_nonneg_check_Q && all_nonneg_check_P) ) {\n  //  stop(\"All elements of the quantity and price matrices must be non-negative.\") ;\n  //}\n\n  // Eventually I want to check that all elemets are posi, but I failed to figure out how to do it\n  // Probably better to wrap those checks within R code.\n\n\n  int M = Q.n_rows ;\n  // double M_double = M ;\n  arma::mat x(M, M) ;\n  arma::vec I_row(M);\n  arma::vec I_col(M);\n  arma::vec ret(M);\n  I_row.ones() ;\n  I_col.ones() ;\n  ret.ones() ;\n\n  for (int col=0; col<M; col++) {\n    double Q_ind_L = dot(P.row(base_period), Q.row(col)) / dot(P.row(base_period), Q.row(base_period)) ;\n    double Q_ind_P = dot(P.row(col), Q.row(col)) / dot(P.row(col), Q.row(base_period)) ;\n    I_row(col) = sqrt(Q_ind_L * Q_ind_P) ;\n  }\n\n  for (int col=0; col<M; col++) {\n\n    for (int row=0; row<M; row++) {\n      double Q_ind_L = dot(P.row(row), Q.row(col)) / dot(P.row(row), Q.row(row)) ;\n      double Q_ind_P = dot(P.row(col), Q.row(col)) / dot(P.row(col), Q.row(row)) ;\n      I_col(row) = sqrt(Q_ind_L * Q_ind_P) ;\n    }\n\n    arma::vec interm_vec_prod = I_row % I_col ;\n\n      // Rcout << \"The value is \" << sum(interm_vec_prod) << std::endl ;\n      if ( ! arma::is_finite(interm_vec_prod) ) {\n        // Note that arma::is_finite checks the whole vector for any non-finite values\n        stop(\"NaNs produced in quantity index. Check the quantity and price matrix inputs. Quantity indices must be positive, so the product of quantities and prices must be positive in all cases.\") ;\n        // Throws error in the case of zeros in the computed quantity index, which\n        // will only occur in the case of all zeros in quantity\n        // Thanks to explanation here: http://gallery.rcpp.org/articles/intro-to-exceptions/\n      }\n      ret(col) = exp(mean(log(interm_vec_prod))) ;\n  }\n\n  return(ret) ;\n}\n\n\n// You can include R code blocks in C++ files processed with sourceCpp\n// (useful for testing and development). The R code will be automatically\n// run after the compilation.\n//\n\n/*** R\ntimesTwo(42)\n*/\n",
+    "created" : 1466373821459.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "144909782",
+    "id" : "D2CD0447",
+    "lastKnownWriteTime" : 1466372754,
+    "last_content_update" : 1466372754,
+    "path" : "~/git/PQindex/PQindex/src/fisherInd.cpp",
+    "project_path" : "PQindex/src/fisherInd.cpp",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "cpp"
+}

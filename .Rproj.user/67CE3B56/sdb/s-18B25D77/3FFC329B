@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "// -*- mode: C++; c-indent-level: 4; c-basic-offset: 4; indent-tabs-mode: nil; -*-\n/* :tabSize=4:indentSize=4:noTabs=false:folding=explicit:collapseFolds=1: */\n//\n// RcppArmadillo.h: Rcpp/Armadillo glue\n//\n// Copyright (C)  2010 - 2016  Dirk Eddelbuettel, Romain Francois and Douglas Bates\n//\n// This file is part of RcppArmadillo.\n//\n// RcppArmadillo is free software: you can redistribute it and/or modify it\n// under the terms of the GNU General Public License as published by\n// the Free Software Foundation, either version 2 of the License, or\n// (at your option) any later version.\n//\n// RcppArmadillo is distributed in the hope that it will be useful, but\n// WITHOUT ANY WARRANTY; without even the implied warranty of\n// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n// GNU General Public License for more details.\n//\n// You should have received a copy of the GNU General Public License\n// along with RcppArmadillo.  If not, see <http://www.gnu.org/licenses/>.\n\n#ifndef RcppArmadillo__RcppArmadillo__h\n#define RcppArmadillo__RcppArmadillo__h\n\n#if defined(Rcpp_hpp) && !defined(COMPILING_RCPPARMADILLO)\n    #error \"The file 'Rcpp.h' should not be included. Please correct to include only 'RcppArmadillo.h'.\"\n#endif\n\n// Set up actual #include <armadillo> after first #include <RcppArmadilloConfig> and more config\n#include <RcppArmadilloForward.h>\n\n// Now automatically include Rcpp as well\n#include <Rcpp.h>\n\n// Remaining RcppArmadillo code\n#include <RcppArmadilloWrap.h>\n#include <RcppArmadilloAs.h>\n#include <RcppArmadilloSugar.h>\n\n#endif\n\n",
+    "created" : 1466372735682.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1788200855",
+    "id" : "3FFC329B",
+    "lastKnownWriteTime" : 1465015888,
+    "last_content_update" : 1465015888,
+    "path" : "/Library/Frameworks/R.framework/Versions/3.2/Resources/library/RcppArmadillo/include/RcppArmadillo.h",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "h"
+}
