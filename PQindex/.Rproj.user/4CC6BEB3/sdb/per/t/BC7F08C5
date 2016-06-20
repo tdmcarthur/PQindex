@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "useDynLib(PQindex)\nexportPattern(\"^[[:alpha:]]+\")\nimportFrom(Rcpp, evalCpp)\n",
+    "created" : 1466394198476.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4062611166",
+    "id" : "BC7F08C5",
+    "lastKnownWriteTime" : 1466391869,
+    "last_content_update" : 1466391869,
+    "path" : "~/GitHub/PQindexTest/PQindex/NAMESPACE",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_namespace"
+}

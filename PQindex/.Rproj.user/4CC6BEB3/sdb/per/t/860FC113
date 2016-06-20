@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "Package: PQindex\nType: Package\nTitle: What the Package Does in One 'Title Case' Line\nVersion: 1.0\nDate: 2016-06-19\nAuthor: Your Name\nMaintainer: Your Name <your@email.com>\nDescription: One paragraph description of what the package\n      does as one or more full sentences.\nLicense: GPL (>= 2)\nImports: Rcpp (>= 0.12.5), RcppArmadillo\nLinkingTo: Rcpp, RcppArmadillo\n",
+    "created" : 1466392133272.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2920212075",
+    "id" : "860FC113",
+    "lastKnownWriteTime" : 1466392235,
+    "last_content_update" : 1466392235910,
+    "path" : "~/GitHub/PQindexTest/PQindex/DESCRIPTION",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "dcf"
+}

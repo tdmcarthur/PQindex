@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "g++ fisherInd.cpp -o fisherInd -O1 -llapack -lblas\n\ncd D:\\Users\\tmcarthur\\Documents\\GitHub\\PQindex\\PQindex\\src\n",
+    "created" : 1466386979084.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "3475147968",
+    "id" : "BCA06E9C",
+    "lastKnownWriteTime" : 2317702480045023859,
+    "last_content_update" : 1466387189824,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

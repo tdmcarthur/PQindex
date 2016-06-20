@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\nPKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)\n",
+    "created" : 1466394593719.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2511174556",
+    "id" : "473DA5E1",
+    "lastKnownWriteTime" : 1466393852,
+    "last_content_update" : 1466393852,
+    "path" : "~/GitHub/PQindexTest/PQindex2/src/Makevars.win",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 11,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "makefile"
+}

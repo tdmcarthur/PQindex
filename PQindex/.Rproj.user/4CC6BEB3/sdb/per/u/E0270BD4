@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "sourceCpp(\"D:/Users/tmcarthur/Documents/GitHub/PQindex/PQindex/src/fisherInd.cpp\")\nsetwd(\"D:/Users/tmcarthur/Documents/GitHub/PQindexTest\")\n\nRcpp.package.skeleton(\"PQindex\",\n                      path =\"D:/Users/tmcarthur/Documents/GitHub/PQindexTest\")\nRcppArmadillo.package.skeleton(\"PQindex2\",\n                               path =\"D:/Users/tmcarthur/Documents/GitHub/PQindexTest\")\n\n\n\n\nuseDynLib(PQindex)\nexportPattern(\"^[[:alpha:]]+\")\nimportFrom(Rcpp, evalCpp)\n\ncd D:\\Users\\tmcarthur\\Documents\\GitHub\\PQindexTest\n\"C:\\Program Files\\R\\R-3.3.0\\bin\\x64\\R.exe\" CMD build --binary PQindex\n\n\ninstall.packages(\"D:/Users/tmcarthur/Documents/GitHub/PQindexTest/PQindex\", repos = NULL, type =\"bin\")\n\n",
+    "created" : 1466391393472.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "2317520237",
+    "id" : "E0270BD4",
+    "lastKnownWriteTime" : 4294967297,
+    "last_content_update" : 1466394903167,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

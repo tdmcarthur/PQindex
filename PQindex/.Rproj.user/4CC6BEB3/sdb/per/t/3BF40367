@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\n#include <Rcpp.h>\nusing namespace Rcpp;\n\n// [[Rcpp::export]]\nList rcpp_hello_world() {\n\n    CharacterVector x = CharacterVector::create( \"foo\", \"bar\" )  ;\n    NumericVector y   = NumericVector::create( 0.0, 1.0 ) ;\n    List z            = List::create( x, y ) ;\n\n    return z ;\n}\n",
+    "created" : 1466393693213.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1102948069",
+    "id" : "3BF40367",
+    "lastKnownWriteTime" : 1466391869,
+    "last_content_update" : 1466391869,
+    "path" : "~/GitHub/PQindexTest/PQindex/src/rcpp_hello_world.cpp",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "cpp"
+}

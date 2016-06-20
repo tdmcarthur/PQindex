@@ -1,0 +1,13 @@
+{
+    "args" : [
+        "-IC:/Program Files/RStudio/resources/libclang/builtin-headers/3.4",
+        "-ID:/Users/tmcarthur/Documents/R/win-library/3.3/Rcpp/include",
+        "-ID:/Users/tmcarthur/Documents/R/win-library/3.3/RcppArmadillo/include",
+        "-IC:/PROGRA~1/R/R-33~1.0/include",
+        "-DNDEBUG",
+        "-Id:/Compiler/gcc-4.9.3/local330/include"
+    ],
+    "hash" : "146638586314663938521466393852",
+    "is_cpp" : true,
+    "pch" : "Rcpp"
+}
