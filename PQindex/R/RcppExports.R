@@ -5,6 +5,14 @@ fisherInd <- function(Q, P, base_period) {
     .Call('PQindex_fisherInd', PACKAGE = 'PQindex', Q, P, base_period)
 }
 
+fisherIndfast <- function(Q, P, Q_consol, P_consol, Q_freq, P_freq) {
+    .Call('PQindex_fisherIndfast', PACKAGE = 'PQindex', Q, P, Q_consol, P_consol, Q_freq, P_freq)
+}
+
+fisherIndfullmat <- function(Q, P) {
+    .Call('PQindex_fisherIndfullmat', PACKAGE = 'PQindex', Q, P)
+}
+
 rcpp_hello <- function() {
     .Call('PQindex_rcpp_hello', PACKAGE = 'PQindex')
 }

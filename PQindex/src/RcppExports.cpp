@@ -19,6 +19,34 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// fisherIndfast
+arma::mat fisherIndfast(arma::mat Q, arma::mat P, arma::mat Q_consol, arma::mat P_consol, arma::mat Q_freq, arma::mat P_freq);
+RcppExport SEXP PQindex_fisherIndfast(SEXP QSEXP, SEXP PSEXP, SEXP Q_consolSEXP, SEXP P_consolSEXP, SEXP Q_freqSEXP, SEXP P_freqSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P(PSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Q_consol(Q_consolSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P_consol(P_consolSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Q_freq(Q_freqSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P_freq(P_freqSEXP);
+    __result = Rcpp::wrap(fisherIndfast(Q, P, Q_consol, P_consol, Q_freq, P_freq));
+    return __result;
+END_RCPP
+}
+// fisherIndfullmat
+arma::mat fisherIndfullmat(arma::mat Q, arma::mat P);
+RcppExport SEXP PQindex_fisherIndfullmat(SEXP QSEXP, SEXP PSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P(PSEXP);
+    __result = Rcpp::wrap(fisherIndfullmat(Q, P));
+    return __result;
+END_RCPP
+}
 // rcpp_hello
 List rcpp_hello();
 RcppExport SEXP PQindex_rcpp_hello() {
