@@ -9,6 +9,18 @@ fisherIndfast <- function(Q, P, Q_consol, P_consol, Q_freq, P_freq) {
     .Call('PQindex_fisherIndfast', PACKAGE = 'PQindex', Q, P, Q_consol, P_consol, Q_freq, P_freq)
 }
 
+testfn <- function(Q_consol, Q_ind) {
+    .Call('PQindex_testfn', PACKAGE = 'PQindex', Q_consol, Q_ind)
+}
+
+fisherIndfaster <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
+    .Call('PQindex_fisherIndfaster', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
+}
+
+fisherIndfasterold <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
+    .Call('PQindex_fisherIndfasterold', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
+}
+
 fisherIndfullmat <- function(Q, P) {
     .Call('PQindex_fisherIndfullmat', PACKAGE = 'PQindex', Q, P)
 }

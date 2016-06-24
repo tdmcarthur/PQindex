@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
+using namespace arma;
 
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp
@@ -145,6 +146,179 @@ arma::mat fisherIndfast (arma::mat Q,         arma::mat P,
   return(exp(ret)) ;
 }
 
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat testfn (arma::mat Q_consol, arma::uvec Q_ind) {
+ // vec v = vec(Q_ind.n_elem) ;
+//  v.ones() ;
+  mat Q_consol_redef = Q_consol.rows(Q_ind) ;
+  return(Q_consol_redef) ;
+}
+
+
+
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat fisherIndfaster (arma::mat Q_consol,  arma::mat P_consol,
+                           arma::mat Q_freq,    arma::mat P_freq,
+                           arma::uvec Q_ind,    arma::uvec P_ind) {
+  // so P_freq has to be a row matrix
+  // so Q_freq has to be a column matrix
+  uword base_period = 0 ;
+  // Since C++ is zero-indexed
+  // int M = Q_ind.n_elem ;
+  double M_dbl = Q_ind.n_elem ;
+  // double M_double = M ;
+  // arma::mat x(M, M) ;
+  //arma::vec I_row(M);
+  //arma::vec I_col(M);
+ // arma::vec ret(M);
+  // I_row.ones() ;
+  // I_col.ones() ;
+  // ret.ones() ;
+
+
+ // for (int col=0; col<M; col++) {
+ //   double Q_ind_L = dot(P.row(base_period), Q.row(col)) / dot(P.row(base_period), Q.row(base_period)) ;
+ //   double Q_ind_P = dot(P.row(col), Q.row(col)) / dot(P.row(col), Q.row(base_period)) ;
+ //   I_row(col) = (Q_ind_L * Q_ind_P) ;
+    // NOTE: important change fom the original fn: This is not sqrt since
+    // that is done below with (1 / (2 * M_dbl))
+  // }
+  // Above is the computation of the non-transitive indices. I wrote this earlier so it is inefficient
+ // double top_row = sum(log(I_row)) ;
+
+
+  // mat Q_consol_redef = Q_consol.each_row(Q_ind) + v;
+  arma::vec revenue = log( sum(Q_consol.rows(Q_ind) % P_consol.rows(P_ind), 1) ) ;
+ // arma::vec revenue = log( sum(Q_consol.rows(Q_ind) % v, 1) ) ;
+  double sum_revenue = sum(revenue) ;
+
+  inplace_trans(P_consol) ;
+
+  arma::vec Q_x_P_consol = log( Q_consol.rows(Q_ind) * P_consol) * P_freq ;
+ // inplace_trans(P_consol) ;
+//  inplace_trans(Q_consol) ;
+//   vec test = Q_freq.t();
+// stop("test") ;
+
+  arma::mat P_x_Q_consol = Q_freq * log(  Q_consol * P_consol.cols(P_ind))   ;
+  // Q_freq *
+   // arma::as_scalar( sum(log( P.row(col) * Q_consol) % Q_freq ))
+  // stop("test") ;
+  //inplace_trans(P_x_Q_consol) ;
+
+
+   double top_row  = (-1) * M_dbl * arma::as_scalar(revenue(base_period))  +
+        sum_revenue -
+        Q_x_P_consol(base_period) +
+        P_x_Q_consol(base_period) ;
+
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+  // }
+
+
+  // stop("test") ;
+//  for (uword col=0; col<M; col++) {
+//    ret(col) = (1 / (2 * M_dbl)) * (
+//        top_row +
+//        M_dbl * arma::as_scalar(revenue(col))  -
+//        sum_revenue +
+//        Q_x_P_consol(Q_ind(col)) -
+//        P_x_Q_consol(P_ind(col))
+//    ) ;
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+//  }
+
+
+  arma::vec ret = (1 / (2 * M_dbl)) * (
+        top_row +
+        M_dbl * revenue  -
+        sum_revenue +
+        Q_x_P_consol(Q_ind) -
+        P_x_Q_consol(P_ind)
+    ) ;
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+
+
+
+  return(exp(ret)) ;
+}
+
+
+
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat fisherIndfasterold (arma::mat Q_consol,  arma::mat P_consol,
+                           arma::mat Q_freq,    arma::mat P_freq,
+                           arma::uvec Q_ind,     arma::uvec P_ind) {
+  // so P_freq has to be a row matrix
+  // so Q_freq has to be a column matrix
+  uword base_period = 0 ;
+  // Since C++ is zero-indexed
+  int M = Q_ind.n_elem ;
+  double M_dbl = Q_ind.n_elem ;
+  // double M_double = M ;
+  // arma::mat x(M, M) ;
+  arma::vec I_row(M);
+  arma::vec I_col(M);
+  arma::vec ret(M);
+  I_row.ones() ;
+  I_col.ones() ;
+  ret.ones() ;
+
+
+ // for (int col=0; col<M; col++) {
+ //   double Q_ind_L = dot(P.row(base_period), Q.row(col)) / dot(P.row(base_period), Q.row(base_period)) ;
+ //   double Q_ind_P = dot(P.row(col), Q.row(col)) / dot(P.row(col), Q.row(base_period)) ;
+ //   I_row(col) = (Q_ind_L * Q_ind_P) ;
+    // NOTE: important change fom the original fn: This is not sqrt since
+    // that is done below with (1 / (2 * M_dbl))
+  // }
+  // Above is the computation of the non-transitive indices. I wrote this earlier so it is inefficient
+ // double top_row = sum(log(I_row)) ;
+
+
+  // mat Q_consol_redef = Q_consol.each_row(Q_ind) + v;
+  arma::vec revenue = log( sum(Q_consol.rows(Q_ind) % P_consol.rows(P_ind), 1) ) ;
+ // arma::vec revenue = log( sum(Q_consol.rows(Q_ind) % v, 1) ) ;
+  double sum_revenue = sum(revenue) ;
+
+  inplace_trans(P_consol) ;
+
+  arma::vec Q_x_P_consol = log( Q_consol.rows(Q_ind) * P_consol) * P_freq ;
+  inplace_trans(P_consol) ;
+  inplace_trans(Q_consol) ;
+  arma::vec P_x_Q_consol = log( P_consol.rows(P_ind) * Q_consol) * Q_freq ;
+   // arma::as_scalar( sum(log( P.row(col) * Q_consol) % Q_freq ))
+
+   double top_row  = (-1) * M_dbl * arma::as_scalar(revenue(base_period))  +
+        sum_revenue -
+        Q_x_P_consol(Q_ind(base_period)) +
+        P_x_Q_consol(P_ind(base_period)) ;
+
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+  // }
+
+
+  // stop("test") ;
+  for (uword col=0; col<M; col++) {
+    ret(col) = (1 / (2 * M_dbl)) * (
+        top_row +
+        M_dbl * arma::as_scalar(revenue(col))  -
+        sum_revenue +
+        Q_x_P_consol(Q_ind(col)) -
+        P_x_Q_consol(P_ind(col))
+    ) ;
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+  }
+
+  return(exp(ret)) ;
+}
+
+
 
 
 
@@ -204,11 +378,62 @@ arma::mat fisherIndfullmat (arma::mat Q, arma::mat P) {
 
 
 
+
+
+
+
 // You can include R code blocks in C++ files processed with sourceCpp
 // (useful for testing and development). The R code will be automatically
 // run after the compilation.
 //
 
 /*** R
-timesTwo(42)
+
+set.seed(100)
+# n.col <- 100; n.row = 40000
+n.row.fact <- 1000
+real.rows.factor = 4
+n.col <- 100; n.row = real.rows.factor; n.row = n.row * n.row.fact
+n.real.rows = n.row / real.rows.factor
+P.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )
+P.mat <- rbind(P.mat[-1, ], P.mat[1, ])
+#P.mat <- rbind(P.mat[1, ], P.mat[1, ], P.mat[2, ], P.mat[2, ])
+#P.mat <- matrix(runif(n.col*n.row), nrow = n.row )
+# Q.mat <- matrix(runif(n.col*n.row), ncol = n.col)
+Q.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )
+
+
+Q.mat.consol <- consol.matrix(Q.mat)
+P.mat.consol <- consol.matrix(P.mat)
+
+
+print(system.time(
+fisherIndfaster.ret <- fisherIndfaster(Q_consol = Q.mat.consol$mat,
+                P_consol = P.mat.consol$mat,
+                Q_freq = t(Q.mat.consol$freq),
+                #Q_freq = Q.mat.consol$freq,
+                P_freq = P.mat.consol$freq,
+                Q_ind = rep((1:n.real.rows) - 1, real.rows.factor),
+                P_ind = c(rep((1:n.real.rows) - 1, real.rows.factor)[-1], 0))
+))
+
+#   user  system elapsed
+#  0.383   0.016   0.432
+
+#  arma::mat Q_consol,  arma::mat P_consol,
+#                           arma::mat Q_freq,    arma::mat P_freq,
+#                           arma::uvec Q_ind,     arma::uvec P_ind)
+
+
+# system.time( slow.fisher <- fisherInd(Q.mat, P.mat, 1) )
+
+print(system.time(
+fast.fisher <-
+  fisherIndfast(Q = Q.mat, P = P.mat,
+                Q_consol = Q.mat.consol$mat,
+                P_consol = P.mat.consol$mat,
+                Q_freq = t(Q.mat.consol$freq),
+                P_freq = t(P.mat.consol$freq ))
+))
+
 */
