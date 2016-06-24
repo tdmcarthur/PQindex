@@ -64,6 +64,7 @@ matrix(1:3, ncol = 3) %*% matrix(1:6, ncol = 2)
 
 # Must come in as a dataframe
 
+library(data.table)
 
 consol.matrix <- function(x) {
   if (!is.data.table(x)) x <- as.data.table(x)
