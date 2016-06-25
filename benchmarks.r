@@ -93,8 +93,8 @@ Q.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TR
 Q.mat.consol <- consol.matrix(Q.mat)
 P.mat.consol <- consol.matrix(P.mat)
 
-#library(Cpp)
-#Rcpp::sourceCpp("~/git/PQindex/PQindex/src/fisherInd.cpp")
+# library(Rcpp)
+# Rcpp::sourceCpp("~/git/PQindex/PQindex/src/fisherInd.cpp")
 
 
 
@@ -115,8 +115,14 @@ fisherIndfaster.ret <- fisherIndfasterold(Q_consol = Q.mat.consol$mat,
 #                           arma::mat Q_freq,    arma::mat P_freq,
 #                           arma::uvec Q_ind,     arma::uvec P_ind)
 
+X <- Matrix(matrix(1:5, nrow = 10), sparse = TRUE)
+Y <- Matrix(matrix(1:5, ncol = 10), sparse = TRUE)
 
-system.time( slow.fisher <- fisherInd(Q.mat, P.mat, 1) )
+
+matmult_cpp(t(X), t(Y))
+
+
+system.time( fisherInd.ret <- fisherInd(Q.mat, P.mat, 1) )
 
 summary( slow.fisher - fisherIndfaster.ret )
 
