@@ -13,6 +13,14 @@ testfn <- function(Q_consol, Q_ind) {
     .Call('PQindex_testfn', PACKAGE = 'PQindex', Q_consol, Q_ind)
 }
 
+fisherIndfastest <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
+    .Call('PQindex_fisherIndfastest', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
+}
+
+matmult_cpp <- function(X, Y) {
+    .Call('PQindex_matmult_cpp', PACKAGE = 'PQindex', X, Y)
+}
+
 fisherIndfaster <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
     .Call('PQindex_fisherIndfaster', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
 }

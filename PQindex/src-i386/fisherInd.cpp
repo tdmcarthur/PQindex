@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 using namespace arma;
+using namespace std;
 
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp
@@ -78,6 +79,13 @@ arma::mat fisherInd (arma::mat Q, arma::mat P, int base_period) {
 
 
 
+// arma::mat matmult_cpp(SEXP Xr, const arma::mat Y) {
+//    if (Rf_isS4(Xr)) {
+//        if(Rf_inherits(Xr, "dgCMatrix")) {
+//            return matmult_sp(as<arma::sp_mat>(Xr), Y) ;
+//        } ;
+
+
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
@@ -133,12 +141,15 @@ arma::mat fisherIndfast (arma::mat Q,         arma::mat P,
       //I_col(row) = (Q_ind_L * Q_ind_P) ;
     //}
 
+
+   // inplace_trans(P_freq) ;
+
     ret(col) = (1 / (2 * M_dbl)) * (
         top_row +
         M_dbl * arma::as_scalar(revenue(col))  -
-        sum_revenue +
-        arma::as_scalar( sum(log( Q.row(col) * P_consol) % P_freq )) -
-        arma::as_scalar( sum(log( P.row(col) * Q_consol) % Q_freq ))
+        sum_revenue  +
+        arma::as_scalar( log( Q.row(col) * P_consol) * P_freq ) -
+        arma::as_scalar( log( P.row(col) * Q_consol) * Q_freq )
     ) ;
     // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
   }
@@ -155,14 +166,79 @@ arma::mat testfn (arma::mat Q_consol, arma::uvec Q_ind) {
   return(Q_consol_redef) ;
 }
 
+// arma::mat fisherIndfastest (arma::sp_mat  Q_consol,  arma::sp_mat P_consol,
+ //                           arma::sp_mat  Q_freq,    arma::sp_mat P_freq,
+   //                         arma::uvec Q_ind,     arma::uvec P_ind) {
+
+// arma::mat fisherIndfastest (arma::mat  Q_consol,  arma::mat P_consol,
+   //                         arma::mat  Q_freq,    arma::mat P_freq,
+     //                       arma::uvec Q_ind,     arma::uvec P_ind) {
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat fisherIndfastest (arma::sp_mat  Q_consol,  arma::sp_mat  P_consol,
+                            arma::mat     Q_freq,    arma::mat     P_freq,
+                            arma::uvec    Q_ind,     arma::uvec    P_ind) {
+
+
+  uword base_period = 0 ;
+  double M_dbl = Q_ind.n_elem ;
+ // arma::mat x(5, 5) ;
+//  mat Q_consol_dense = conv_to<mat>::from(Q_consol);
+//  mat P_consol_dense = conv_to<mat>::from(P_consol);
+  arma::wall_clock timer;
+  timer.tic();
+  arma::vec revenue = log( sum( conv_to<mat>::from(Q_consol).rows(Q_ind) %
+                                conv_to<mat>::from(P_consol).rows(P_ind), 1) ) ;
+  cout << "time taken = " << timer.toc()  << endl;
+  double sum_revenue = sum(revenue) ;
+
+//  inplace_trans(P_consol) ;
+  arma::vec Q_x_P_consol = log( conv_to<mat>::from(Q_consol * P_consol.t() )) * P_freq;
+  //arma::vec Q_x_P_consol = log( Q_consol * P_consol.t()) * P_freq ;
+  // arma::vec Q_x_P_consol = Q_x_P_consol_inter(Q_ind) ;
+
+//  inplace_trans(Q_consol) ;
+ // inplace_trans(P_consol) ;
+  // arma::as_scalar( sum(log( Q.row(col) * P_consol) * P_freq ))
+  arma::vec P_x_Q_consol = log( conv_to<mat>::from( P_consol * Q_consol.t() )) * Q_freq.t() ;
+  // arma::vec P_x_Q_consol = P_x_Q_consol_inter(P_ind) ;
+
+   double top_row  = (-1) * M_dbl * arma::as_scalar(revenue(base_period))  +
+        sum_revenue -
+        Q_x_P_consol(base_period) +
+        P_x_Q_consol(base_period) ;
+
+  arma::vec ret = (1 / (2 * M_dbl)) * (
+        top_row +
+        M_dbl * revenue  -
+        sum_revenue  +
+        Q_x_P_consol(Q_ind) -
+        P_x_Q_consol(P_ind)
+    ) ;
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+
+
+
+  return(exp(ret)) ;
+}
 
 
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat fisherIndfaster (arma::mat Q_consol,  arma::mat P_consol,
-                           arma::mat Q_freq,    arma::mat P_freq,
-                           arma::uvec Q_ind,    arma::uvec P_ind) {
+arma::sp_mat matmult_cpp(const arma::sp_mat X, const arma::sp_mat Y) {
+// arma::sp_mat ret =  ;
+ return(X * Y) ;
+}
+
+
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat fisherIndfaster (arma::mat  Q_consol,  arma::mat P_consol,
+                           arma::mat  Q_freq,    arma::mat P_freq,
+                           arma::uvec Q_ind,     arma::uvec P_ind) {
   // so P_freq has to be a row matrix
   // so Q_freq has to be a column matrix
   uword base_period = 0 ;
@@ -196,14 +272,21 @@ arma::mat fisherIndfaster (arma::mat Q_consol,  arma::mat P_consol,
   double sum_revenue = sum(revenue) ;
 
   inplace_trans(P_consol) ;
-
-  arma::vec Q_x_P_consol = log( Q_consol.rows(Q_ind) * P_consol) * P_freq ;
+  // arma::as_scalar( sum(log( Q.row(col) * P_consol) * P_freq ))
+  arma::vec Q_x_P_consol = log( Q_consol * P_consol) * P_freq ;
+  //arma::vec Q_x_P_consol = Q_x_P_consol_inter(Q_ind) ;
  // inplace_trans(P_consol) ;
 //  inplace_trans(Q_consol) ;
 //   vec test = Q_freq.t();
-// stop("test") ;
+ // stop("test") ;
 
-  arma::mat P_x_Q_consol = Q_freq * log(  Q_consol * P_consol.cols(P_ind))   ;
+  inplace_trans(Q_consol) ;
+  inplace_trans(P_consol) ;
+  // arma::as_scalar( sum(log( Q.row(col) * P_consol) * P_freq ))
+  arma::vec P_x_Q_consol = log( P_consol * Q_consol) * Q_freq.t() ;
+//  arma::vec P_x_Q_consol = P_x_Q_consol_inter(P_ind) ;
+
+  // arma::mat P_x_Q_consol = Q_freq * log(  Q_consol * P_consol.cols(P_ind))   ;
   // Q_freq *
    // arma::as_scalar( sum(log( P.row(col) * Q_consol) % Q_freq ))
   // stop("test") ;
@@ -235,7 +318,7 @@ arma::mat fisherIndfaster (arma::mat Q_consol,  arma::mat P_consol,
   arma::vec ret = (1 / (2 * M_dbl)) * (
         top_row +
         M_dbl * revenue  -
-        sum_revenue +
+        sum_revenue  +
         Q_x_P_consol(Q_ind) -
         P_x_Q_consol(P_ind)
     ) ;
@@ -245,6 +328,13 @@ arma::mat fisherIndfaster (arma::mat Q_consol,  arma::mat P_consol,
 
   return(exp(ret)) ;
 }
+
+
+
+
+
+
+
 
 
 
@@ -388,12 +478,30 @@ arma::mat fisherIndfullmat (arma::mat Q, arma::mat P) {
 //
 
 /*** R
+if ( F) {
+library(data.table)
+library(Matrix)
+
+consol.matrix <- function(x) {
+  if (!is.data.table(x)) x <- as.data.table(x)
+  x.ret <- x[, .(.N), by = names(x)]
+  N.ret <- matrix(x.ret$N, ncol = 1)
+  x.ret[, N := NULL]
+  list(mat = as.matrix(x.ret), freq = N.ret)
+}
+
+
 
 set.seed(100)
 # n.col <- 100; n.row = 40000
-n.row.fact <- 1000
-real.rows.factor = 4
-n.col <- 100; n.row = real.rows.factor; n.row = n.row * n.row.fact
+# With these params, fastest index fn get 77 secs. Faster index fn gets 320 secs (4 times faster):
+# n.row.fact <- 20000 ; real.rows.factor = 20 ; n.col <- 400;
+# With the below, I have fastest 0.13; faster 0.185; naive 18.4 secs :
+# n.row.fact <- 1000 ; real.rows.factor = 5 ; n.col <- 100;
+# With below, I get fastest 0.013; faster 0.014; naive 112.533:
+n.row.fact <- 100 ; real.rows.factor = 100 ; n.col <- 100;
+# n.row.fact <- 10 ; real.rows.factor = 2 ; n.col <- 4;
+n.row = real.rows.factor; n.row = n.row * n.row.fact
 n.real.rows = n.row / real.rows.factor
 P.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )
 P.mat <- rbind(P.mat[-1, ], P.mat[1, ])
@@ -401,12 +509,30 @@ P.mat <- rbind(P.mat[-1, ], P.mat[1, ])
 #P.mat <- matrix(runif(n.col*n.row), nrow = n.row )
 # Q.mat <- matrix(runif(n.col*n.row), ncol = n.col)
 Q.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )
+Q.mat[, 10:ncol(Q.mat)] <- 0
+# Making the matrix sparse
 
 
 Q.mat.consol <- consol.matrix(Q.mat)
 P.mat.consol <- consol.matrix(P.mat)
 
+if (F) {
+  print( system.time( fisherInd.ret <- fisherInd(Q.mat, P.mat, 1) ) )
+}
 
+if (F) {
+print(system.time(
+fisherIndfast.ret <-
+  fisherIndfast(Q = Q.mat, P = P.mat,
+                Q_consol = Q.mat.consol$mat,
+                P_consol = P.mat.consol$mat,
+                Q_freq = Q.mat.consol$freq,
+                P_freq = P.mat.consol$freq ) # t(P.mat.consol$freq ))
+))
+}
+
+
+if (T) {
 print(system.time(
 fisherIndfaster.ret <- fisherIndfaster(Q_consol = Q.mat.consol$mat,
                 P_consol = P.mat.consol$mat,
@@ -414,26 +540,38 @@ fisherIndfaster.ret <- fisherIndfaster(Q_consol = Q.mat.consol$mat,
                 #Q_freq = Q.mat.consol$freq,
                 P_freq = P.mat.consol$freq,
                 Q_ind = rep((1:n.real.rows) - 1, real.rows.factor),
-                P_ind = c(rep((1:n.real.rows) - 1, real.rows.factor)[-1], 0))
+                P_ind = rep((1:n.real.rows) - 1, real.rows.factor))
+                # P_ind = c(rep((1:n.real.rows) - 1, real.rows.factor)[-1], 0))
 ))
-
-#   user  system elapsed
-#  0.383   0.016   0.432
-
-#  arma::mat Q_consol,  arma::mat P_consol,
-#                           arma::mat Q_freq,    arma::mat P_freq,
-#                           arma::uvec Q_ind,     arma::uvec P_ind)
+}
 
 
-# system.time( slow.fisher <- fisherInd(Q.mat, P.mat, 1) )
 
+if (T) {
 print(system.time(
-fast.fisher <-
-  fisherIndfast(Q = Q.mat, P = P.mat,
-                Q_consol = Q.mat.consol$mat,
-                P_consol = P.mat.consol$mat,
+fisherIndfastest.ret <- fisherIndfastest(
+              # Q_consol = Q.mat.consol$mat,
+              # P_consol = P.mat.consol$mat,
+                Q_consol = Matrix(Q.mat.consol$mat, sparse = TRUE),
+                P_consol = Matrix(P.mat.consol$mat, sparse = TRUE),
                 Q_freq = t(Q.mat.consol$freq),
-                P_freq = t(P.mat.consol$freq ))
+                #Q_freq = Q.mat.consol$freq,
+                P_freq = P.mat.consol$freq,
+                Q_ind = rep((1:n.real.rows) - 1, real.rows.factor),
+                P_ind = rep((1:n.real.rows) - 1, real.rows.factor))
+                # P_ind = c(rep((1:n.real.rows) - 1, real.rows.factor)[-1], 0))
 ))
+}
 
+
+try( print(summary(fisherInd.ret - fisherIndfast.ret)) )
+
+try( print(summary(fisherIndfaster.ret - fisherIndfast.ret)) )
+
+try( print(summary(fisherIndfastest.ret - fisherIndfaster.ret)) )
+
+try( print(summary(fisherIndfastest.ret - fisherInd.ret)) )
+
+
+}
 */
