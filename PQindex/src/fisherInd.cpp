@@ -1,4 +1,7 @@
+#define ARMA_64BIT_WORD
+// #define ARMA_NO_DEBUG
 #include <RcppArmadillo.h>
+#include <Rcpp.h>
 using namespace Rcpp;
 using namespace arma;
 using namespace std;
@@ -12,6 +15,294 @@ using namespace std;
 //   http://adv-r.had.co.nz/Rcpp.html
 //   http://gallery.rcpp.org/
 //
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat linspacetest (arma::vec x) {
+  return( linspace(x(0), x(1), x(2)) ) ;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat regspacetest (arma::vec x) {
+  return( regspace(x(0), x(1), x(2)) ) ;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat regspacetest2 (arma::vec x) {
+  return( regspace(x(0), x(1)) ) ;
+}
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+std::vector<int> sugar_in(IntegerVector x, IntegerVector y) {
+  LogicalVector ind = in(x, y);
+  int n = ind.size();
+  std::vector<int> output;
+  output.reserve(n);
+  for (int i=0; i < n; ++i) {
+    if (ind[i]) output.push_back(i+1);
+  }
+  return output;
+}
+// Thanks to http://stackoverflow.com/questions/21359432/a-c-version-of-the-in-operator-in-r
+// I modified it a bit to use Armadillo data types
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+std::vector<int> sugar_in2(IntegerVector x, IntegerVector y) {
+  LogicalVector ind = in(x, y);
+  int n = ind.size();
+  std::vector<int> output;
+  output.reserve(n);
+  for (int i=0; i < n; ++i) {
+    if (ind[i]) output.push_back(i+1);
+  }
+  return output;
+}
+
+// [[Rcpp::export]]
+arma::uvec myInOperator(const arma::uvec myBigVec, const arma::uvec mySmallVec ){
+ arma::uvec rslt = find(myBigVec == mySmallVec[0]);
+ for (int i = 1; i < mySmallVec.size(); i++){
+   arma::uvec rslt_tmp = find(myBigVec == mySmallVec[i]);
+   rslt = arma::unique(join_cols( rslt, rslt_tmp ));
+ }
+ return rslt;
+}
+
+
+
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::vec  which_in2(uvec x, uvec y) {
+  std::vector<int> y_sort(y.size());
+  std::partial_sort_copy (y.begin(), y.end(), y_sort.begin(), y_sort.end());
+
+  int nx = x.size();
+  arma::vec out;
+
+  for (int i = 0; i < nx; ++i) {
+    std::vector<int>::iterator found =
+      lower_bound(y_sort.begin(), y_sort.end(), x[i]);
+    if (found != y_sort.end()) {
+      // out.push_back(i + 1);
+      out.resize(out.n_elem + 1) ;
+      out(out.n_elem - 1) = i + 1;
+    }
+    // This is going to be slow, but Im desperate to get this to work
+  }
+  return out;
+}
+
+
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp_mat  P_consol,
+                                   arma::mat     Q_freq,    arma::mat     P_freq,
+                                   arma::uvec    Q_ind,     arma::uvec    P_ind) {
+
+  cout << "Got here, after data read-in " << endl;
+  uword base_period = 0 ;
+  double M_dbl = Q_ind.n_elem ;
+  uword split_interval = ceil( 1e+11 / (P_consol.n_rows * P_consol.n_cols)) ;
+  // 1e+08 ; 1e+6; 1e+2; 1e+12
+  // The 1e+08 will likely create a bug if there are more than 100 million firms
+  // 1e+08 is designed to keep the Q_split_x_P under one gig of memory
+  cout << "Got here, right before spl creation " << endl;
+  uvec spl = regspace<uvec>(1, split_interval, Q_consol.n_rows - 1) - 1L  ;
+  // subtracting 1 from P_consol.n_rows so that I can append it later
+  // without running into a bug. Using the useful behavior of regspace here
+  cout << "Got here, after spl creation " << endl;
+  spl.resize(spl.n_elem + 1) ;
+  cout << "Got here, after spl resize " << endl;
+  spl(spl.n_elem - 1) = Q_consol.n_rows  ;
+  // preventing off-by-one error.
+
+  arma::vec Q_x_P_vec(Q_consol.n_rows) ;
+  Q_x_P_vec.zeros() ;
+  arma::rowvec P_x_Q_vec(P_consol.n_rows) ;
+  P_x_Q_vec.zeros() ;
+  arma::vec revenue(Q_ind.n_elem) ;
+  revenue.zeros() ;
+
+  cout << "spl.n_rows = " << spl.n_rows << std::endl;
+  // cout << "spl values: " << endl;
+  cout << "spl element 0 = " << spl(0) << std::endl;
+  cout << "spl element 1 = " << spl(1) << std::endl;
+  cout << "spl elements = " << std::endl;
+ // spl.print() ;
+
+  cout << "Got here, right before loop " << endl;
+
+//   stop("") ;
+
+  inplace_trans( Q_freq );
+
+  for (uword spl_i=0; spl_i < (spl.n_elem - 1); spl_i++) {
+    cout << "iteration " << spl_i << " of " << (spl.n_elem - 1) << endl;
+    // Note that col < split.n_elem is strictly less than, so
+    // it won't run over the last element.
+    // uvec split_span = span(split(split_it), split(split_it + 1)) ;
+   // A(p:q, :) 	  	A.rows(p, q)
+
+    arma::mat Q_split_x_P = log( conv_to<mat>::from(Q_consol.rows(
+      spl(spl_i), spl(spl_i + 1) - 1) * P_consol.t() )) ;
+    cout << "Got here, after Q_split_x_P  creation " << endl;
+
+    Q_x_P_vec(span( spl(spl_i), spl(spl_i + 1) - 1 )) = Q_split_x_P * P_freq ;
+    // P_freq is a column vec.
+    // In a sense I am appending these values
+    cout << "Got here, after Q_x_P_vec fill " << endl;
+    cout << "Q_split_x_P.n_rows = " << Q_split_x_P.n_rows << std::endl;
+   //  cout << "Q_split_x_P.n_cols = " << Q_split_x_P.n_cols << std::endl;
+
+    // P_x_Q_vec(span( spl(spl_i), spl(spl_i + 1) - 1 )) =
+    //   (Q_split_x_P * Q_freq).t() ;
+    // I changd this, and it may be a problem
+    // P_x_Q_vec += Q_freq.t() % Q_split_x_P ;
+     // span( spl(spl_i), spl(spl_i + 1) - 1 )
+     P_x_Q_vec += Q_freq.cols(spl(spl_i), spl(spl_i + 1) - 1 ) * Q_split_x_P ;
+    // Q_freq originally comes in as a column vector
+    // P_x_Q_vec is a row vector. Add in place
+    cout << "Got here, after P_x_Q_vec addition " << endl;
+
+    uvec Q_split_ind = regspace<uvec>(spl(spl_i), spl(spl_i + 1) - 1)  ;
+    cout << "Got here, after Q_split_ind creation " << endl;
+
+   // uvec Q_split_supra_ind = conv_to<uvec>::from(
+    //  sugar_in(
+    //  conv_tostd::vector<int>::from(Q_ind),
+    //  conv_to<int>::from(Q_split_ind) )
+    //);
+   // Q_split_ind.print();
+     arma::wall_clock timer;
+     timer.tic();
+  // uvec Q_split_supra_ind =  myInOperator(Q_ind, Q_split_ind)   ; // - 1
+   // uvec Q_split_supra_ind =  Q_ind.rows(find(Q_ind >= spl(spl_i) && Q_ind <= spl(spl_i + 1) - 1)) ;
+   uvec logic_1 = Q_ind >= spl(spl_i) ;
+   uvec logic_2 = Q_ind <= (spl(spl_i + 1) - 1) ;
+   uvec Q_split_supra_ind =  find( (logic_1 + logic_2) == 2) ;
+   // Jumping through a bunch of hoops to get compound logical expressions
+
+     cout << "IN operator time = " << timer.toc()  << endl;
+   // Had to convert a lot since Rcpp's sugar "in"
+   // is written for a certain data ype
+   cout << "Got here, after Q_split_supra_ind creation " << endl;
+   // Q_split_supra_ind.print();
+   // Q_ind.print() ;
+   // P_ind.print() ;
+   cout << "Q_split_x_P.n_rows " << Q_split_x_P.n_rows << endl;
+   cout << "Q_split_x_P.n_cols " << Q_split_x_P.n_cols << endl;
+
+  // uvec test = conv_to<uvec>::from(Q_ind(Q_split_supra_ind) +
+  //   (conv_to<vec>::from(P_ind(Q_split_supra_ind)) - 1L) * Q_split_x_P.n_rows) ;
+   // uvec test = conv_to<uvec>::from(Q_ind(Q_split_supra_ind) + (P_ind) * Q_split_x_P.n_rows) ;
+   // convert to vec very important because subtracting uvec below zero makes
+   // integer underflow
+   umat testt = join_rows(Q_ind(Q_split_supra_ind) - spl(spl_i),
+                          P_ind(Q_split_supra_ind) );
+   // arma::mat testtprint = conv_to<mat>::from(testt)  ;
+  // testtprint.print() ;
+   //  size(Q_split_x_P).print() ;
+   uvec test = arma::sub2ind( size(Q_split_x_P), testt.t() ) ;
+
+    // test.print();
+    // stop("STOP");
+    cout << "max test value " << max(test) << endl;
+    cout << "Q_split_x_P.n_elem " << Q_split_x_P.n_elem << endl;
+
+    revenue(Q_split_supra_ind) =
+      Q_split_x_P( test  ) ;
+    // Thanks to  http://stackoverflow.com/questions/6920441/index-values-from-a-matrix-using-row-col-indicies
+    // Using this idea to get the vectorized index:
+    // y <- mat[dat$I + (dat$J-1L)*nrow(mat)]
+       cout << "Got here, after revenue fill " << endl;
+
+  }
+
+  cout << "Got here, after loop done " << endl;
+
+  double sum_revenue = sum(revenue) ;
+
+
+   double top_row  = (-1) * M_dbl * arma::as_scalar(revenue(base_period))  +
+        sum_revenue -
+        Q_x_P_vec(base_period) +
+        P_x_Q_vec(base_period) ;
+
+  cout << "Got here, after top_row calc " << endl;
+
+  arma::vec ret = (1 / (2 * M_dbl)) * (
+        top_row +
+        M_dbl * revenue  -
+        sum_revenue  +
+        Q_x_P_vec(Q_ind) -
+        P_x_Q_vec(P_ind)
+    ) ;
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+
+
+
+  return(exp(ret)) ;
+}
+
+
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat fisherIndfastest (arma::sp_mat  Q_consol,  arma::sp_mat  P_consol,
+                            arma::mat     Q_freq,    arma::mat     P_freq,
+                            arma::uvec    Q_ind,     arma::uvec    P_ind) {
+
+
+  uword base_period = 0 ;
+  double M_dbl = Q_ind.n_elem ;
+ // arma::mat x(5, 5) ;
+//  mat Q_consol_dense = conv_to<mat>::from(Q_consol);
+//  mat P_consol_dense = conv_to<mat>::from(P_consol);
+  arma::wall_clock timer;
+  timer.tic();
+  arma::vec revenue = log( sum( conv_to<mat>::from(Q_consol).rows(Q_ind) %
+                                conv_to<mat>::from(P_consol).rows(P_ind), 1) ) ;
+  cout << "time taken = " << timer.toc()  << endl;
+  double sum_revenue = sum(revenue) ;
+
+//  inplace_trans(P_consol) ;
+  arma::vec Q_x_P_consol = log( conv_to<mat>::from(Q_consol * P_consol.t() )) * P_freq;
+  //arma::vec Q_x_P_consol = log( Q_consol * P_consol.t()) * P_freq ;
+  // arma::vec Q_x_P_consol = Q_x_P_consol_inter(Q_ind) ;
+
+//  inplace_trans(Q_consol) ;
+ // inplace_trans(P_consol) ;
+  // arma::as_scalar( sum(log( Q.row(col) * P_consol) * P_freq ))
+  arma::vec P_x_Q_consol = log( conv_to<mat>::from( P_consol * Q_consol.t() )) * Q_freq.t() ;
+  // arma::vec P_x_Q_consol = P_x_Q_consol_inter(P_ind) ;
+
+   double top_row  = (-1) * M_dbl * arma::as_scalar(revenue(base_period))  +
+        sum_revenue -
+        Q_x_P_consol(base_period) +
+        P_x_Q_consol(base_period) ;
+
+  arma::vec ret = (1 / (2 * M_dbl)) * (
+        top_row +
+        M_dbl * revenue  -
+        sum_revenue  +
+        Q_x_P_consol(Q_ind) -
+        P_x_Q_consol(P_ind)
+    ) ;
+    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
+
+
+
+  return(exp(ret)) ;
+}
+
+
+
+
 
 
 
@@ -173,55 +464,6 @@ arma::mat testfn (arma::mat Q_consol, arma::uvec Q_ind) {
 // arma::mat fisherIndfastest (arma::mat  Q_consol,  arma::mat P_consol,
    //                         arma::mat  Q_freq,    arma::mat P_freq,
      //                       arma::uvec Q_ind,     arma::uvec P_ind) {
-
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::export]]
-arma::mat fisherIndfastest (arma::sp_mat  Q_consol,  arma::sp_mat  P_consol,
-                            arma::mat     Q_freq,    arma::mat     P_freq,
-                            arma::uvec    Q_ind,     arma::uvec    P_ind) {
-
-
-  uword base_period = 0 ;
-  double M_dbl = Q_ind.n_elem ;
- // arma::mat x(5, 5) ;
-//  mat Q_consol_dense = conv_to<mat>::from(Q_consol);
-//  mat P_consol_dense = conv_to<mat>::from(P_consol);
-  arma::wall_clock timer;
-  timer.tic();
-  arma::vec revenue = log( sum( conv_to<mat>::from(Q_consol).rows(Q_ind) %
-                                conv_to<mat>::from(P_consol).rows(P_ind), 1) ) ;
-  cout << "time taken = " << timer.toc()  << endl;
-  double sum_revenue = sum(revenue) ;
-
-//  inplace_trans(P_consol) ;
-  arma::vec Q_x_P_consol = log( conv_to<mat>::from(Q_consol * P_consol.t() )) * P_freq;
-  //arma::vec Q_x_P_consol = log( Q_consol * P_consol.t()) * P_freq ;
-  // arma::vec Q_x_P_consol = Q_x_P_consol_inter(Q_ind) ;
-
-//  inplace_trans(Q_consol) ;
- // inplace_trans(P_consol) ;
-  // arma::as_scalar( sum(log( Q.row(col) * P_consol) * P_freq ))
-  arma::vec P_x_Q_consol = log( conv_to<mat>::from( P_consol * Q_consol.t() )) * Q_freq.t() ;
-  // arma::vec P_x_Q_consol = P_x_Q_consol_inter(P_ind) ;
-
-   double top_row  = (-1) * M_dbl * arma::as_scalar(revenue(base_period))  +
-        sum_revenue -
-        Q_x_P_consol(base_period) +
-        P_x_Q_consol(base_period) ;
-
-  arma::vec ret = (1 / (2 * M_dbl)) * (
-        top_row +
-        M_dbl * revenue  -
-        sum_revenue  +
-        Q_x_P_consol(Q_ind) -
-        P_x_Q_consol(P_ind)
-    ) ;
-    // "For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1) "
-
-
-
-  return(exp(ret)) ;
-}
 
 
 
@@ -478,7 +720,8 @@ arma::mat fisherIndfullmat (arma::mat Q, arma::mat P) {
 //
 
 /*** R
-if ( F) {
+if ( T) {
+
 library(data.table)
 library(Matrix)
 
@@ -495,11 +738,11 @@ consol.matrix <- function(x) {
 set.seed(100)
 # n.col <- 100; n.row = 40000
 # With these params, fastest index fn get 77 secs. Faster index fn gets 320 secs (4 times faster):
-# n.row.fact <- 20000 ; real.rows.factor = 20 ; n.col <- 400;
+ n.row.fact <- 20000 ; real.rows.factor = 20 ; n.col <- 400;
 # With the below, I have fastest 0.13; faster 0.185; naive 18.4 secs :
-# n.row.fact <- 1000 ; real.rows.factor = 5 ; n.col <- 100;
+# n.row.fact <- 1000 ; real.rows.factor = 5 ; n.col <- 300;
 # With below, I get fastest 0.013; faster 0.014; naive 112.533:
-n.row.fact <- 100 ; real.rows.factor = 100 ; n.col <- 100;
+# n.row.fact <- 100 ; real.rows.factor = 100 ; n.col <- 100;
 # n.row.fact <- 10 ; real.rows.factor = 2 ; n.col <- 4;
 n.row = real.rows.factor; n.row = n.row * n.row.fact
 n.real.rows = n.row / real.rows.factor
@@ -509,12 +752,14 @@ P.mat <- rbind(P.mat[-1, ], P.mat[1, ])
 #P.mat <- matrix(runif(n.col*n.row), nrow = n.row )
 # Q.mat <- matrix(runif(n.col*n.row), ncol = n.col)
 Q.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )
-Q.mat[, 10:ncol(Q.mat)] <- 0
+Q.mat[, 3:ncol(Q.mat)] <- 0
 # Making the matrix sparse
 
 
 Q.mat.consol <- consol.matrix(Q.mat)
 P.mat.consol <- consol.matrix(P.mat)
+rm(Q.mat)
+rm(P.mat)
 
 if (F) {
   print( system.time( fisherInd.ret <- fisherInd(Q.mat, P.mat, 1) ) )
@@ -532,7 +777,7 @@ fisherIndfast.ret <-
 }
 
 
-if (T) {
+if (F) {
 print(system.time(
 fisherIndfaster.ret <- fisherIndfaster(Q_consol = Q.mat.consol$mat,
                 P_consol = P.mat.consol$mat,
@@ -547,7 +792,7 @@ fisherIndfaster.ret <- fisherIndfaster(Q_consol = Q.mat.consol$mat,
 
 
 
-if (T) {
+if (F) {
 print(system.time(
 fisherIndfastest.ret <- fisherIndfastest(
               # Q_consol = Q.mat.consol$mat,
@@ -563,6 +808,25 @@ fisherIndfastest.ret <- fisherIndfastest(
 ))
 }
 
+if (T) {
+print(system.time(
+fisherIndfastestfurious.ret <- fisherIndfastestfurious(
+              # Q_consol = Q.mat.consol$mat,
+              # P_consol = P.mat.consol$mat,
+                Q_consol = Matrix(Q.mat.consol$mat, sparse = TRUE),
+                P_consol = Matrix(P.mat.consol$mat, sparse = TRUE),
+                Q_freq = Q.mat.consol$freq,
+                #Q_freq = Q.mat.consol$freq,
+                P_freq = P.mat.consol$freq,
+                Q_ind = rep((1:n.real.rows) - 1, real.rows.factor),
+                P_ind = rep((1:n.real.rows) - 1, real.rows.factor))
+                # P_ind = c(rep((1:n.real.rows) - 1, real.rows.factor)[-1], 0))
+))
+}
+
+
+
+
 
 try( print(summary(fisherInd.ret - fisherIndfast.ret)) )
 
@@ -570,7 +834,11 @@ try( print(summary(fisherIndfaster.ret - fisherIndfast.ret)) )
 
 try( print(summary(fisherIndfastest.ret - fisherIndfaster.ret)) )
 
+try( print(summary(fisherIndfastest.ret - fisherIndfastestfurious.ret)) )
+
 try( print(summary(fisherIndfastest.ret - fisherInd.ret)) )
+
+
 
 
 }

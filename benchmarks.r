@@ -1,3 +1,21 @@
+library(devtools)
+install_github("RcppCore/RcppArmadillo")
+# In fact I need the very lastest
+
+
+
+library(Rcpp)
+Rcpp::sourceCpp("~/git/PQindex/PQindex/src/fisherInd.cpp")
+
+
+
+system.time(myInOperator(1:10000, 10000:1))
+system.time((1:10000 %in% 10000:1))
+system.time(sugar_in2(1:10000, 10000:1))
+
+
+
+
 set.seed(100)
 n.col <- 10; n.row = 4
 P.mat <- matrix(runif(n.col*n.row/2), nrow = n.row / 2)
@@ -222,7 +240,24 @@ system.time( consol.matrix(as.data.table(x1M)))
 
 
 
+# from http://stackoverflow.com/questions/6920441/index-values-from-a-matrix-using-row-col-indicies
+mat <- matrix(sin(1:1e6), ncol=1000)
+dat <- data.frame(I=sample.int(nrow(mat), 1e6, rep=T),
+                  J=sample.int(ncol(mat), 1e6, rep=T))
 
+system.time( x <- mat[cbind(dat$I, dat$J)] )
+system.time( y <- mat[dat$I + (dat$J-1L)*nrow(mat)] )
+
+identical(x, y)
+
+# linspacetest(c(0, 1, 5, 14))
+regspacetest(c(1, 5, 14))
+regspacetest(c(1, 5, 16))
+regspacetest(c(1, 50, 16))
+
+arma::mat linspacetest (arma::vec x) {
+  return( linspace(x(1), x(2), x(3)) ) ;
+}
 
 
 
