@@ -25,8 +25,8 @@ myInOperator <- function(myBigVec, mySmallVec) {
     .Call('PQindex_myInOperator', PACKAGE = 'PQindex', myBigVec, mySmallVec)
 }
 
-fisherIndfastestfurious <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind, split_size) {
-    .Call('PQindex_fisherIndfastestfurious', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind, split_size)
+fisherIndfastestfurious <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
+    .Call('PQindex_fisherIndfastestfurious', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
 }
 
 fisherIndfastest <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {

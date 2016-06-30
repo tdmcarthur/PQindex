@@ -76,8 +76,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fisherIndfastestfurious
-arma::mat fisherIndfastestfurious(const arma::sp_mat Q_consol, const arma::sp_mat P_consol, arma::mat Q_freq, arma::mat P_freq, arma::uvec Q_ind, arma::uvec P_ind, arma::mat split_size);
-RcppExport SEXP PQindex_fisherIndfastestfurious(SEXP Q_consolSEXP, SEXP P_consolSEXP, SEXP Q_freqSEXP, SEXP P_freqSEXP, SEXP Q_indSEXP, SEXP P_indSEXP, SEXP split_sizeSEXP) {
+arma::mat fisherIndfastestfurious(const arma::sp_mat Q_consol, const arma::sp_mat P_consol, arma::mat Q_freq, arma::mat P_freq, arma::uvec Q_ind, arma::uvec P_ind);
+RcppExport SEXP PQindex_fisherIndfastestfurious(SEXP Q_consolSEXP, SEXP P_consolSEXP, SEXP Q_freqSEXP, SEXP P_freqSEXP, SEXP Q_indSEXP, SEXP P_indSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -87,8 +87,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type P_freq(P_freqSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type Q_ind(Q_indSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type P_ind(P_indSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type split_size(split_sizeSEXP);
-    __result = Rcpp::wrap(fisherIndfastestfurious(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind, split_size));
+    __result = Rcpp::wrap(fisherIndfastestfurious(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind));
     return __result;
 END_RCPP
 }

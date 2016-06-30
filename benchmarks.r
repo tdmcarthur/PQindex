@@ -5,6 +5,14 @@ install_github("RcppCore/RcppArmadillo")
 ## vm_stat | perl -ne '/page size of (\d+)/ and $size=$1; /Pages\s+([^:]+)[^\d]+(\d+)/ and printf("%-16s % 16.2f Mi\n", "$1:", $2 * $size / 1048576);'
 
 
+# Must do this before build:
+# for windows box:
+Sys.setenv( "PKG_CXXFLAGS"="-std=c++0x" )
+
+# For macbook:
+Sys.setenv( "PKG_CXXFLAGS"="-std=c++11" )
+
+
 
 library(Rcpp)
 Rcpp::sourceCpp("~/git/PQindex/PQindex/src/fisherInd.cpp")
