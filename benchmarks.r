@@ -2,10 +2,22 @@ library(devtools)
 install_github("RcppCore/RcppArmadillo")
 # In fact I need the very lastest
 
+## vm_stat | perl -ne '/page size of (\d+)/ and $size=$1; /Pages\s+([^:]+)[^\d]+(\d+)/ and printf("%-16s % 16.2f Mi\n", "$1:", $2 * $size / 1048576);'
+
 
 
 library(Rcpp)
 Rcpp::sourceCpp("~/git/PQindex/PQindex/src/fisherInd.cpp")
+
+#define ARMA_64BIT_WORD
+
+// [[Rcpp::plugins(cpp11)]]
+
+
+// #define ARMA_NO_DEBUG
+
+    user   system  elapsed
+1649.811  240.937 1918.402
 
 
 

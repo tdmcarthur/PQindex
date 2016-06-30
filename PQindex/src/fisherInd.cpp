@@ -1,7 +1,8 @@
-#define ARMA_64BIT_WORD
-// #define ARMA_NO_DEBUG
+
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+// [[Rcpp::depends(RcppProgress)]]
+// #include <progress.hpp>
 using namespace Rcpp;
 using namespace arma;
 using namespace std;
@@ -75,41 +76,43 @@ arma::uvec myInOperator(const arma::uvec myBigVec, const arma::uvec mySmallVec )
 
 
 
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::export]]
-arma::vec  which_in2(uvec x, uvec y) {
-  std::vector<int> y_sort(y.size());
-  std::partial_sort_copy (y.begin(), y.end(), y_sort.begin(), y_sort.end());
+// arma::vec  which_in2(uvec x, uvec y) {
+//   std::vector<int> y_sort(y.size());
+//   std::partial_sort_copy (y.begin(), y.end(), y_sort.begin(), y_sort.end());
 
-  int nx = x.size();
-  arma::vec out;
+//   int nx = x.size();
+//   arma::vec out;
 
-  for (int i = 0; i < nx; ++i) {
-    std::vector<int>::iterator found =
-      lower_bound(y_sort.begin(), y_sort.end(), x[i]);
-    if (found != y_sort.end()) {
+//   for (int i = 0; i < nx; ++i) {
+ //    std::vector<int>::iterator found =
+ //      lower_bound(y_sort.begin(), y_sort.end(), x[i]);
+ //    if (found != y_sort.end()) {
       // out.push_back(i + 1);
-      out.resize(out.n_elem + 1) ;
-      out(out.n_elem - 1) = i + 1;
-    }
+ //      out.resize(out.n_elem + 1) ;
+ //      out(out.n_elem - 1) = i + 1;
+ //    }
     // This is going to be slow, but Im desperate to get this to work
-  }
-  return out;
-}
+ //  }
+//   return out;
+// }
 
 
-
+// [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppProgress)]]
+// #include <progress.hpp>
 // [[Rcpp::export]]
 arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp_mat  P_consol,
                                    arma::mat     Q_freq,    arma::mat     P_freq,
                                    arma::uvec    Q_ind,     arma::uvec    P_ind) {
+                              //     arma::mat split_size) {
 
+  // auto x = 10;
   cout << "Got here, after data read-in " << endl;
   uword base_period = 0 ;
   double M_dbl = Q_ind.n_elem ;
-  uword split_interval = ceil( 1e+11 / (P_consol.n_rows * P_consol.n_cols)) ;
-  // 1e+08 ; 1e+6; 1e+2; 1e+12
+  uword split_interval = ceil( as_scalar(2e+12) / (P_consol.n_rows * Q_consol.n_rows)) ;
+  // 1e+08 ; 1e+6; 1e+2; 1e+12; 2e+10 2e+6; Best: split_size = 1e+13
   // The 1e+08 will likely create a bug if there are more than 100 million firms
   // 1e+08 is designed to keep the Q_split_x_P under one gig of memory
   cout << "Got here, right before spl creation " << endl;
@@ -142,6 +145,12 @@ arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp
 
   inplace_trans( Q_freq );
 
+ // umat Q_P_ind_combined = join_rows(Q_ind, P_ind ) ;
+
+//  inplace_trans( Q_P_ind_combined );
+
+ // Progress p(0, false);
+
   for (uword spl_i=0; spl_i < (spl.n_elem - 1); spl_i++) {
     cout << "iteration " << spl_i << " of " << (spl.n_elem - 1) << endl;
     // Note that col < split.n_elem is strictly less than, so
@@ -149,13 +158,26 @@ arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp
     // uvec split_span = span(split(split_it), split(split_it + 1)) ;
    // A(p:q, :) 	  	A.rows(p, q)
 
+  //  if (Progress::check_abort() )
+  //          stop("User abort");
+
+     arma::wall_clock timer;
+     timer.tic();
+
     arma::mat Q_split_x_P = log( conv_to<mat>::from(Q_consol.rows(
       spl(spl_i), spl(spl_i + 1) - 1) * P_consol.t() )) ;
+
+    cout << "Main matrix operation time = " << timer.toc()  << endl;
+
     cout << "Got here, after Q_split_x_P  creation " << endl;
+
+    timer.tic();
 
     Q_x_P_vec(span( spl(spl_i), spl(spl_i + 1) - 1 )) = Q_split_x_P * P_freq ;
     // P_freq is a column vec.
     // In a sense I am appending these values
+    cout << "Q_x_P_vec operation time = " << timer.toc()  << endl;
+
     cout << "Got here, after Q_x_P_vec fill " << endl;
     cout << "Q_split_x_P.n_rows = " << Q_split_x_P.n_rows << std::endl;
    //  cout << "Q_split_x_P.n_cols = " << Q_split_x_P.n_cols << std::endl;
@@ -165,13 +187,18 @@ arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp
     // I changd this, and it may be a problem
     // P_x_Q_vec += Q_freq.t() % Q_split_x_P ;
      // span( spl(spl_i), spl(spl_i + 1) - 1 )
+    timer.tic();
      P_x_Q_vec += Q_freq.cols(spl(spl_i), spl(spl_i + 1) - 1 ) * Q_split_x_P ;
+
+     cout << "P_x_Q_vec operation time = " << timer.toc()  << endl;
+
+     timer.tic();
     // Q_freq originally comes in as a column vector
     // P_x_Q_vec is a row vector. Add in place
     cout << "Got here, after P_x_Q_vec addition " << endl;
 
-    uvec Q_split_ind = regspace<uvec>(spl(spl_i), spl(spl_i + 1) - 1)  ;
-    cout << "Got here, after Q_split_ind creation " << endl;
+   // uvec Q_split_ind = regspace<uvec>(spl(spl_i), spl(spl_i + 1) - 1)  ;
+  //  cout << "Got here, after Q_split_ind creation " << endl;
 
    // uvec Q_split_supra_ind = conv_to<uvec>::from(
     //  sugar_in(
@@ -179,16 +206,22 @@ arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp
     //  conv_to<int>::from(Q_split_ind) )
     //);
    // Q_split_ind.print();
-     arma::wall_clock timer;
-     timer.tic();
+  //   arma::wall_clock timer;
+   //  timer.tic();
+
   // uvec Q_split_supra_ind =  myInOperator(Q_ind, Q_split_ind)   ; // - 1
    // uvec Q_split_supra_ind =  Q_ind.rows(find(Q_ind >= spl(spl_i) && Q_ind <= spl(spl_i + 1) - 1)) ;
-   uvec logic_1 = Q_ind >= spl(spl_i) ;
-   uvec logic_2 = Q_ind <= (spl(spl_i + 1) - 1) ;
-   uvec Q_split_supra_ind =  find( (logic_1 + logic_2) == 2) ;
+
+   //uvec Q_split_supra_ind =  find( ( (Q_ind >= spl(spl_i) ) +
+    // (Q_ind <= (spl(spl_i + 1))) ) == 2) ;
+
+      uvec logic_1 = Q_ind >= spl(spl_i) ;
+      uvec logic_2 = Q_ind <= (spl(spl_i + 1) - 1) ;
+      uvec Q_split_supra_ind = find( (logic_1 + logic_2) == 2) ;
+
    // Jumping through a bunch of hoops to get compound logical expressions
 
-     cout << "IN operator time = " << timer.toc()  << endl;
+    // cout << "IN operator time = " << timer.toc()  << endl;
    // Had to convert a lot since Rcpp's sugar "in"
    // is written for a certain data ype
    cout << "Got here, after Q_split_supra_ind creation " << endl;
@@ -203,24 +236,29 @@ arma::mat fisherIndfastestfurious (const arma::sp_mat  Q_consol,  const arma::sp
    // uvec test = conv_to<uvec>::from(Q_ind(Q_split_supra_ind) + (P_ind) * Q_split_x_P.n_rows) ;
    // convert to vec very important because subtracting uvec below zero makes
    // integer underflow
-   umat testt = join_rows(Q_ind(Q_split_supra_ind) - spl(spl_i),
+    umat testt = join_rows(Q_ind(Q_split_supra_ind) - spl(spl_i),
                           P_ind(Q_split_supra_ind) );
    // arma::mat testtprint = conv_to<mat>::from(testt)  ;
   // testtprint.print() ;
    //  size(Q_split_x_P).print() ;
-   uvec test = arma::sub2ind( size(Q_split_x_P), testt.t() ) ;
+
+  // umat Q_P_ind_combined_temp = Q_P_ind_combined.cols(Q_split_supra_ind) ;
+  // Q_P_ind_combined_temp.row(1) -= spl(spl_i) ;
+
+   // uvec test =  ;
 
     // test.print();
     // stop("STOP");
-    cout << "max test value " << max(test) << endl;
+    // cout << "max test value " << max(test) << endl;
     cout << "Q_split_x_P.n_elem " << Q_split_x_P.n_elem << endl;
+   // Q_P_ind_combined_temp.print();
 
     revenue(Q_split_supra_ind) =
-      Q_split_x_P( test  ) ;
-    // Thanks to  http://stackoverflow.com/questions/6920441/index-values-from-a-matrix-using-row-col-indicies
-    // Using this idea to get the vectorized index:
-    // y <- mat[dat$I + (dat$J-1L)*nrow(mat)]
-       cout << "Got here, after revenue fill " << endl;
+       Q_split_x_P( arma::sub2ind( size(Q_split_x_P), testt.t() )) ;
+      // Q_split_x_P( arma::sub2ind( size(Q_split_x_P), Q_P_ind_combined_temp ) ) ;
+
+    cout << "Got here, after revenue fill " << endl;
+    cout << "Rest of operations in the loop = " << timer.toc()  << endl;
 
   }
 
@@ -738,7 +776,8 @@ consol.matrix <- function(x) {
 set.seed(100)
 # n.col <- 100; n.row = 40000
 # With these params, fastest index fn get 77 secs. Faster index fn gets 320 secs (4 times faster):
- n.row.fact <- 20000 ; real.rows.factor = 20 ; n.col <- 400;
+ n.row.fact <- 100000 ; real.rows.factor = 2 ; n.col <- 400;
+# n.row.fact <- 100000 ; real.rows.factor = 2 ; n.col <- 10;
 # With the below, I have fastest 0.13; faster 0.185; naive 18.4 secs :
 # n.row.fact <- 1000 ; real.rows.factor = 5 ; n.col <- 300;
 # With below, I get fastest 0.013; faster 0.014; naive 112.533:
@@ -752,7 +791,7 @@ P.mat <- rbind(P.mat[-1, ], P.mat[1, ])
 #P.mat <- matrix(runif(n.col*n.row), nrow = n.row )
 # Q.mat <- matrix(runif(n.col*n.row), ncol = n.col)
 Q.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )
-Q.mat[, 3:ncol(Q.mat)] <- 0
+Q.mat[, 4:ncol(Q.mat)] <- 0
 # Making the matrix sparse
 
 
@@ -820,6 +859,7 @@ fisherIndfastestfurious.ret <- fisherIndfastestfurious(
                 P_freq = P.mat.consol$freq,
                 Q_ind = rep((1:n.real.rows) - 1, real.rows.factor),
                 P_ind = rep((1:n.real.rows) - 1, real.rows.factor))
+               #, split_size = 1e+13
                 # P_ind = c(rep((1:n.real.rows) - 1, real.rows.factor)[-1], 0))
 ))
 }

@@ -9,12 +9,28 @@ regspacetest <- function(x) {
     .Call('PQindex_regspacetest', PACKAGE = 'PQindex', x)
 }
 
+regspacetest2 <- function(x) {
+    .Call('PQindex_regspacetest2', PACKAGE = 'PQindex', x)
+}
+
 sugar_in <- function(x, y) {
     .Call('PQindex_sugar_in', PACKAGE = 'PQindex', x, y)
 }
 
-fisherIndfastestfurious <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
-    .Call('PQindex_fisherIndfastestfurious', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
+sugar_in2 <- function(x, y) {
+    .Call('PQindex_sugar_in2', PACKAGE = 'PQindex', x, y)
+}
+
+myInOperator <- function(myBigVec, mySmallVec) {
+    .Call('PQindex_myInOperator', PACKAGE = 'PQindex', myBigVec, mySmallVec)
+}
+
+fisherIndfastestfurious <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind, split_size) {
+    .Call('PQindex_fisherIndfastestfurious', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind, split_size)
+}
+
+fisherIndfastest <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
+    .Call('PQindex_fisherIndfastest', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
 }
 
 fisherInd <- function(Q, P, base_period) {
@@ -27,10 +43,6 @@ fisherIndfast <- function(Q, P, Q_consol, P_consol, Q_freq, P_freq) {
 
 testfn <- function(Q_consol, Q_ind) {
     .Call('PQindex_testfn', PACKAGE = 'PQindex', Q_consol, Q_ind)
-}
-
-fisherIndfastest <- function(Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind) {
-    .Call('PQindex_fisherIndfastest', PACKAGE = 'PQindex', Q_consol, P_consol, Q_freq, P_freq, Q_ind, P_ind)
 }
 
 matmult_cpp <- function(X, Y) {
