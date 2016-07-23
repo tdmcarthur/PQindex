@@ -776,13 +776,14 @@ consol.matrix <- function(x) {
 set.seed(100)
 # n.col <- 100; n.row = 40000
 # With these params, fastest index fn get 77 secs. Faster index fn gets 320 secs (4 times faster):
- n.row.fact <- 100000 ; real.rows.factor = 2 ; n.col <- 400;
+#  n.row.fact <- 100000 ; real.rows.factor = 2 ; n.col <- 400;
 # n.row.fact <- 100000 ; real.rows.factor = 2 ; n.col <- 10;
 # With the below, I have fastest 0.13; faster 0.185; naive 18.4 secs :
 # n.row.fact <- 1000 ; real.rows.factor = 5 ; n.col <- 300;
 # With below, I get fastest 0.013; faster 0.014; naive 112.533:
 # n.row.fact <- 100 ; real.rows.factor = 100 ; n.col <- 100;
 # n.row.fact <- 10 ; real.rows.factor = 2 ; n.col <- 4;
+n.row.fact <- 1000 ; real.rows.factor = 1 ; n.col <- 400;
 n.row = real.rows.factor; n.row = n.row * n.row.fact
 n.real.rows = n.row / real.rows.factor
 P.mat <- matrix(runif(n.real.rows*n.col), ncol = n.col, nrow = n.row, byrow = TRUE )

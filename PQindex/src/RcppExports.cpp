@@ -6,6 +6,28 @@
 
 using namespace Rcpp;
 
+// sp_mat_mult
+arma::sp_mat sp_mat_mult(arma::sp_mat x);
+RcppExport SEXP PQindex_sp_mat_mult(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::sp_mat >::type x(xSEXP);
+    __result = Rcpp::wrap(sp_mat_mult(x));
+    return __result;
+END_RCPP
+}
+// reg_mat_mult
+arma::mat reg_mat_mult(arma::mat x);
+RcppExport SEXP PQindex_reg_mat_mult(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    __result = Rcpp::wrap(reg_mat_mult(x));
+    return __result;
+END_RCPP
+}
 // linspacetest
 arma::mat linspacetest(arma::vec x);
 RcppExport SEXP PQindex_linspacetest(SEXP xSEXP) {

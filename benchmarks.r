@@ -28,6 +28,19 @@ Rcpp::sourceCpp("~/git/PQindex/PQindex/src/fisherInd.cpp")
 1649.811  240.937 1918.402
 
 
+library(Rcpp)
+Rcpp::sourceCpp("~/git/PQindex/PQindex/src/benchmarks.cpp")
+
+x   <- matrix(sample(c(1, rep(0, 200)), 1000000, rep = TRUE), ncol = 100)
+x.sp <- Matrix(x)
+
+system.time( y <- reg_mat_mult(x) )
+
+system.time( y.sp <- sp_mat_mult(x.sp))
+
+
+
+
 
 system.time(myInOperator(1:10000, 10000:1))
 system.time((1:10000 %in% 10000:1))

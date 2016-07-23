@@ -2,6 +2,7 @@
 %2FLibrary%2FFrameworks%2FR.framework%2FVersions%2F3.2%2FResources%2Flibrary%2FRcppArmadillo%2Finclude%2Farmadillo="CA26315F"
 ~%2Fgit%2FPQindex%2FDESCRIPTION="D0CEC91C"
 ~%2Fgit%2FPQindex%2FPQindex%2Fsrc%2FRcppExports.cpp="D042DCA7"
+~%2Fgit%2FPQindex%2FPQindex%2Fsrc%2Fbenchmarks.cpp="26F66BF1"
 ~%2Fgit%2FPQindex%2FPQindex%2Fsrc%2FfisherInd.cpp="D57E622"
 ~%2Fgit%2FPQindex%2FR%2Fhello.R="C64D635B"
 ~%2Fgit%2FPQindex%2Fbenchmarks.r="9AC0C9C7"
